@@ -12,6 +12,7 @@ Bugfixes:
  * Standalone Assembly: Do not ignore input after closing brace of top level block.
  * Standard JSON: catch errors properly when invalid "sources" are passed
  * Type Checker: Properly warn when using ``_offset`` and ``_slot`` for constants in inline assembly.
+ * Assembly: Do not ignore input after closing brace of top level block.
 
 ### 0.4.20 (2018-02-14)
 
