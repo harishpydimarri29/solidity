@@ -5946,6 +5946,23 @@ BOOST_AUTO_TEST_CASE(return_structs)
 	CHECK_SUCCESS(text);
 }
 
+BOOST_AUTO_TEST_CASE(read_returned_struct)
+{
+	char const* text = R"(
+		pragma experimental ABIEncoderV2;
+		contract A {
+			struct T {
+				int x;
+				int y;
+			}
+			function g() public returns (T) {
+				return this.g();
+			}
+		}
+	)";
+	CHECK_WARNING(text, "Experimental features");
+}
+
 BOOST_AUTO_TEST_CASE(return_recursive_structs)
 {
 	char const* text = R"(
