@@ -838,6 +838,7 @@ string CompilerStack::createMetadata(Contract const& _contract) const
 	}
 	meta["settings"]["optimizer"]["enabled"] = m_optimize;
 	meta["settings"]["optimizer"]["runs"] = m_optimizeRuns;
+	meta["settings"]["evmVersion"] = m_evmVersion.name();
 	meta["settings"]["compilationTarget"][_contract.contract->sourceUnitName()] =
 		_contract.contract->annotation().canonicalName;
 
