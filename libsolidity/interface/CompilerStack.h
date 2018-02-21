@@ -23,20 +23,26 @@
 
 #pragma once
 
+#include <libsolidity/interface/ErrorReporter.h>
+#include <libsolidity/interface/ReadFile.h>
+#include <libsolidity/interface/EVMVersion.h>
+
+#include <libevmasm/SourceLocation.h>
+#include <libevmasm/LinkerObject.h>
+
+#include <libdevcore/Common.h>
+#include <libdevcore/FixedHash.h>
+
+#include <json/json.h>
+
+#include <boost/noncopyable.hpp>
+#include <boost/filesystem.hpp>
+
 #include <ostream>
 #include <string>
 #include <memory>
 #include <vector>
 #include <functional>
-#include <boost/noncopyable.hpp>
-#include <boost/filesystem.hpp>
-#include <json/json.h>
-#include <libdevcore/Common.h>
-#include <libdevcore/FixedHash.h>
-#include <libevmasm/SourceLocation.h>
-#include <libevmasm/LinkerObject.h>
-#include <libsolidity/interface/ErrorReporter.h>
-#include <libsolidity/interface/ReadFile.h>
 
 namespace dev
 {
@@ -114,6 +120,11 @@ public:
 	{
 		m_optimize = _optimize;
 		m_optimizeRuns = _runs;
+	}
+
+	void setEVMVersion(EVMVersion _version = EVMVersion{})
+	{
+		m_evmVersion = _version;
 	}
 
 	/// Sets the list of requested contract names. If empty, no filtering is performed and every contract
@@ -310,6 +321,7 @@ private:
 	ReadCallback::Callback m_smtQuery;
 	bool m_optimize = false;
 	unsigned m_optimizeRuns = 200;
+	EVMVersion m_evmVersion;
 	std::set<std::string> m_requestedContractNames;
 	std::map<std::string, h160> m_libraries;
 	/// list of path prefix remappings, e.g. mylibrary: github.com/ethereum = /usr/local/ethereum
