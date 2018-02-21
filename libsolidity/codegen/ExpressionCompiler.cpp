@@ -1608,22 +1608,27 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	bool isCallCode = funKind == FunctionType::Kind::BareCallCode || funKind == FunctionType::Kind::CallCode;
 	bool isDelegateCall = funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::DelegateCall;
 
-	bool allowDynamicTypes = false; // @TODO
+	bool haveReturndatacopy = false; // @TODO change this to true if we are using the current VM
 	unsigned retSize = 0;
 	TypePointers returnTypes;
 	if (returnSuccessCondition)
 		retSize = 0; // return value actually is success condition
-	else if (allowDynamicTypes)
+	else if (haveReturndatacopy)
 		returnTypes = _functionType.returnParameterTypes();
 	else
-	{
 		returnTypes = _functionType.returnParameterTypesWithoutDynamicTypes();
-		for (auto const& retType: returnTypes)
+
+	bool dynamicReturnSize = false;
+	for (auto const& retType: returnTypes)
+		if (retType->isDynamicallyEncoded())
 		{
-			solAssert(!retType->isDynamicallySized(), "Unable to return dynamic type from external call.");
-			retSize += retType->calldataEncodedSize();
+			solAssert(haveReturndatacopy, "");
+			dynamicReturnSize = true;
+			retSize = 0;
+			break;
 		}
-	}
+		else
+			retSize += retType->calldataEncodedSize();
 
 	// Evaluate arguments.
 	TypePointers argumentTypes;
@@ -1678,6 +1683,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 		utils().storeFreeMemoryPointer();
 	}
 
+	// @TODO remove this if we use the current VM
 	// Touch the end of the output area so that we do not pay for memory resize during the call
 	// (which we would have to subtract from the gas left)
 	// We could also just use MLOAD; POP right before the gas calculation, but the optimizer
@@ -1816,17 +1822,38 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	else if (!returnTypes.empty())
 	{
 		utils().fetchFreeMemoryPointer();
-		bool memoryNeeded = false;
-		for (auto const& retType: returnTypes)
-		{
-			utils().loadFromMemoryDynamic(*retType, false, true, true);
-			if (dynamic_cast<ReferenceType const*>(retType.get()))
-				memoryNeeded = true;
-		}
-		if (memoryNeeded)
-			utils().storeFreeMemoryPointer();
+		// Stack: return_data_start
+
+		// The old decoder did not allocate any memory (i.e. did not touch the free
+		// memory pointer), but kept references to the return data for
+		// (statically-sized) arrays
+		bool needToUpdateFreeMemoryPtr = false;
+		if (dynamicReturnSize || m_context.experimentalFeatureActive(ExperimentalFeature::ABIEncoderV2))
+			needToUpdateFreeMemoryPtr = true;
 		else
-			m_context << Instruction::POP;
+			for (auto const& retType: returnTypes)
+				if (dynamic_cast<ReferenceType const*>(retType.get()))
+					needToUpdateFreeMemoryPtr = true;
+
+		// Stack: return_data_start
+		if (dynamicReturnSize)
+		{
+			solAssert(haveReturndatacopy, "");
+			m_context.appendInlineAssembly("returndatacopy(return_data_start, 0, returndatasize())", {"return_data_start"});
+		}
+		else
+			solAssert(retSize > 0, "");
+		m_context << (haveReturndatacopy ? Instruction::RETURNDATASIZE : u256(retSize));
+		// Stack: return_data_start return_data_size
+
+		if (needToUpdateFreeMemoryPtr)
+			m_context.appendInlineAssembly(R"({
+				// round size to the next multiple of 32
+				let newMem := add(start, and(add(size, 31), not(31)))
+				mstore(0x40, newMem)
+			})", {"start", "size"});
+
+		utils().abiDecode(returnTypes, true, true);
 	}
 }
 

@@ -1513,7 +1513,7 @@ bool TypeChecker::visit(FunctionCall const& _functionCall)
 			_functionCall.expression().annotation().isPure &&
 			functionType->isPure();
 
-	bool allowDynamicTypes = false; // @TODO
+	bool allowDynamicTypes = false; // @TODO this should be enabled if we use the current VM
 	if (!functionType)
 	{
 		m_errorReporter.typeError(_functionCall.location(), "Type is not callable");
