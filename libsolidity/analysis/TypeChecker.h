@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <libsolidity/interface/EVMVersion.h>
+
 #include <libsolidity/ast/Types.h>
 #include <libsolidity/ast/ASTAnnotations.h>
 #include <libsolidity/ast/ASTForward.h>
@@ -43,7 +45,10 @@ class TypeChecker: private ASTConstVisitor
 {
 public:
 	/// @param _errorReporter provides the error logging functionality.
-	TypeChecker(ErrorReporter& _errorReporter): m_errorReporter(_errorReporter) {}
+	TypeChecker(EVMVersion _evmVersion, ErrorReporter& _errorReporter):
+		m_evmVersion(_evmVersion),
+		m_errorReporter(_errorReporter)
+	{}
 
 	/// Performs type checking on the given contract and all of its sub-nodes.
 	/// @returns true iff all checks passed. Note even if all checks passed, errors() can still contain warnings
@@ -130,6 +135,7 @@ private:
 
 	ContractDefinition const* m_scope = nullptr;
 
+	EVMVersion m_evmVersion;
 	ErrorReporter& m_errorReporter;
 };
 

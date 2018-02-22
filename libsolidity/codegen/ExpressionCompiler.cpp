@@ -1608,7 +1608,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 	bool isCallCode = funKind == FunctionType::Kind::BareCallCode || funKind == FunctionType::Kind::CallCode;
 	bool isDelegateCall = funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::DelegateCall;
 
-	bool haveReturndatacopy = false; // @TODO change this to true if we are using the current VM
+	bool haveReturndatacopy = m_context.evmVersion().hasReturndatacopy();
 	unsigned retSize = 0;
 	TypePointers returnTypes;
 	if (returnSuccessCondition)
