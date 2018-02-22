@@ -2,6 +2,7 @@
 
 Features:
  * Code Generator: Assert that ``k != 0`` for ``molmod(a, b, k)`` and ``addmod(a, b, k)`` as experimental 0.5.0 feature.
+ * Interface: Provide ability to select target EVM version (homestead or byzantium, with byzantium being the default).
  * Standard JSON: Reject badly formatted invalid JSON inputs.
  * Type Checker: Disallow uninitialized storage pointers as experimental 0.5.0 feature.
 
