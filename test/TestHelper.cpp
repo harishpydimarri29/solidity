@@ -19,8 +19,12 @@
 * @date 2014
 */
 
+#include <test/TestHelper.h>
+
+#include <libsolidity/interface/EVMVersion.h>
+
 #include <boost/test/framework.hpp>
-#include "TestHelper.h"
+
 using namespace std;
 using namespace dev::test;
 
@@ -41,6 +45,15 @@ Options::Options()
 		}
 		else if (string(suite.argv[i]) == "--optimize")
 			optimize = true;
+		else if (string(suite.argv[i]) == "--evm-version")
+		{
+			// @TODO: abort test on wrong arguments
+			//BOOST_REQUIRE_MESSAGE(i + 1 < suite.argc, "Missing argument for --evm-version");
+			auto version = solidity::EVMVersion::fromString(suite.argv[i + 1]);
+			//BOOST_REQUIRE_MESSAGE(version, "Invalid argument for --evm-version: " + string(suite.argv[i + 1]));
+			evmVersion = *version;
+			++i;
+		}
 		else if (string(suite.argv[i]) == "--show-messages")
 			showMessages = true;
 		else if (string(suite.argv[i]) == "--no-ipc")
