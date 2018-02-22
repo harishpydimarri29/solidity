@@ -119,10 +119,16 @@ jobs:
           command: test/cmdlineTests.sh
       - run: mkdir -p test_results
       - run:
-          name: Test without optimizer (exclude IPC tests)
+          name: Test without optimizer on homestead (exclude IPC tests)
+          command: build/test/soltest --logger=JUNIT,test_suite,test_results/no_opt.xml  -- --evm-version homestead --no-ipc
+      - run:
+          name: Test with optimizer on homestead (exclude IPC tests)
+          command: build/test/soltest --logger=JUNIT,test_suite,test_results/opt.xml -- --evm-version homestead --optimize --no-ipc
+      - run:
+          name: Test without optimizer on byzantium (exclude IPC tests)
           command: build/test/soltest --logger=JUNIT,test_suite,test_results/no_opt.xml  -- --no-ipc
       - run:
-          name: Test with optimizer (exclude IPC tests)
+          name: Test with optimizer on byzantium (exclude IPC tests)
           command: build/test/soltest --logger=JUNIT,test_suite,test_results/opt.xml -- --optimize --no-ipc
       - store_test_results:
           path: test_results/
